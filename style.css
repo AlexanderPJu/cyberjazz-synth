@@ -1,0 +1,125 @@
+/* --- БАЗА (Среда обитания) --- */
+body {
+    margin: 0; 
+    height: 100vh;
+    background-color: #121317;
+    background-image: radial-gradient(circle at 50% 30%, #1f2229 0%, #0a0b0e 100%);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-end;
+    padding-bottom: 15vh; 
+    overflow: hidden;
+    font-family: 'Fira Code', monospace;
+}
+
+/* --- ГОЛОГРАММА (Воздушный интерфейс) --- */
+.hologram-stage {
+    position: absolute; 
+    top: 20vh; 
+    text-align: center;
+    pointer-events: none; 
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.hologram-stage.active { 
+    opacity: 1; 
+    transform: translateY(0); 
+}
+
+.kanji {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 8rem; 
+    font-weight: 300; 
+    line-height: 1; 
+    margin-bottom: 20px;
+    animation: float 4s ease-in-out infinite;
+    transition: color 0.5s, text-shadow 0.5s;
+}
+
+.console-text {
+    font-size: 1.1rem; 
+    white-space: pre-wrap; 
+    text-align: left;
+    min-height: 100px; 
+    padding-left: 15px;
+    border-left: 2px solid transparent;
+    transition: color 0.5s, text-shadow 0.5s, border-color 0.5s;
+}
+
+/* --- КОРПУС СИНТЕЗАТОРА (Hardware) --- */
+.synth-board {
+    display: flex; 
+    gap: 8px; 
+    padding: 40px 50px;
+    background: #15171c; 
+    border-radius: 6px;
+    box-shadow: 
+        0 30px 60px rgba(0,0,0,0.9), 
+        inset 0 2px 0 rgba(255,255,255,0.05), 
+        inset 0 -10px 20px rgba(0,0,0,0.5);
+    border-top: 1px solid #2a2d35; 
+    border-bottom: 4px solid #0a0b0e;
+}
+
+/* Физика клавиш */
+.synth-key {
+    width: 70px; 
+    height: 220px; 
+    border: none; 
+    border-radius: 2px 2px 6px 6px;
+    cursor: pointer; 
+    position: relative;
+    box-shadow: 
+        -2px 0 5px rgba(0,0,0,0.5), 
+        2px 0 5px rgba(0,0,0,0.5), 
+        inset 0 2px 1px rgba(255,255,255,0.3), 
+        inset 0 -15px 15px rgba(0,0,0,0.4);
+    transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+}
+
+/* Нажатие */
+.synth-key:active, .synth-key.pressed {
+    transform: perspective(500px) rotateX(5deg) translateY(4px);
+    box-shadow: 
+        -1px 0 2px rgba(0,0,0,0.8), 
+        1px 0 2px rgba(0,0,0,0.8), 
+        inset 0 1px 1px rgba(0,0,0,0.5), 
+        inset 0 -5px 10px rgba(0,0,0,0.6);
+}
+
+/* Светодиод внизу клавиши */
+.synth-key::after {
+    content: ''; position: absolute; 
+    bottom: 15px; left: 50%; transform: translateX(-50%);
+    width: 30px; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.1); 
+    transition: all 0.3s ease;
+}
+
+/* --- МАТЕРИАЛЫ КЛАВИШ (Стихии) --- */
+.key-gold { background: #b89947; }
+.key-gold.pressed::after { background: #ffda75; box-shadow: 0 0 15px #ffda75; }
+
+.key-earth { background: #2c2f33; }
+.key-earth.pressed::after { background: #8b6b4a; box-shadow: 0 0 15px #8b6b4a; }
+
+.key-hinoki { background: #5c3a21; }
+.key-hinoki.pressed::after { background: #e68a49; box-shadow: 0 0 15px #e68a49; }
+
+.key-water { background: #2b4c7e; }
+.key-water.pressed::after { background: #4dabf7; box-shadow: 0 0 15px #4dabf7; }
+
+.key-ice { background: #e0f2fe; }
+.key-ice.pressed::after { background: #00ffff; box-shadow: 0 0 15px #00ffff; }
+
+.key-white { background: #e2e8f0; }
+.key-white.pressed::after { background: #ffffff; box-shadow: 0 0 15px #ffffff; }
+
+/* Анимация парения */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}

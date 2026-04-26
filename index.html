@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Cyberjazz Synth | Elemental Vibe</title>
+    <!-- Шрифты для кода и японского -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&family=Noto+Sans+JP:wght@300&display=swap" rel="stylesheet">
+    <!-- Подключение CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Фронтенд: Голограмма -->
+    <div class="hologram-stage" id="hologram">
+        <div class="kanji" id="kanji-display"></div>
+        <div class="console-text" id="typewriter"></div>
+    </div>
+
+    <!-- Фронтенд: Физический пульт (6 клавиш) -->
+    <div class="synth-board">
+        <button class="synth-key key-gold" id="btn-gold" title="Element: Gold"></button>
+        <button class="synth-key key-earth" id="btn-earth" title="Element: Earth"></button>
+        <button class="synth-key key-hinoki" id="btn-hinoki" title="Element: Hinoki Wood"></button>
+        
+        <button class="synth-key key-water" id="btn-water" title="Element: Water"></button>
+        <button class="synth-key key-ice" id="btn-ice" title="Element: Ice"></button>
+        <button class="synth-key key-white" id="btn-white" title="System: Reset"></button>
+    </div>
+
+    <!-- Подключение JS (в самом конце body) -->
+    <script src="app.js"></script>
+</body>
+</html>
