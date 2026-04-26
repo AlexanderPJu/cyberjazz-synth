@@ -15,17 +15,40 @@
         <div class="kanji" id="kanji-display"></div>
         <div class="console-text" id="typewriter"></div>
     </div>
+    
+    <!-- Фронтенд: Панель Эффектов (Микшер) -->
+    <div class="mixer-board">
+        <div class="fader-group">
+            <input type="range" id="fader-volume" class="fader" min="0" max="1" step="0.01" value="0.8">
+            <label class="fader-label">VOLUME</label>
+        </div>
+        <div class="fader-group">
+            <input type="range" id="fader-filter" class="fader" min="100" max="5000" step="10" value="5000">
+            <label class="fader-label">FILTER</label>
+        </div>
+        <div class="fader-group">
+            <!-- Q-фактор от 0.0001 (плоский) до 30 (свистящий резонанс) -->
+            <input type="range" id="fader-q" class="fader" min="0" max="30" step="0.1" value="0">
+            <label class="fader-label">Q-FACTOR</label>
+        </div>
 
-    <!-- Фронтенд: Физический пульт (6 клавиш) -->
-    <div class="synth-board">
-        <button class="synth-key key-gold" id="btn-gold" title="Element: Gold"></button>
-        <button class="synth-key key-earth" id="btn-earth" title="Element: Earth"></button>
-        <button class="synth-key key-hinoki" id="btn-hinoki" title="Element: Hinoki Wood"></button>
-        
-        <button class="synth-key key-water" id="btn-water" title="Element: Water"></button>
-        <button class="synth-key key-ice" id="btn-ice" title="Element: Ice"></button>
-        <button class="synth-key key-white" id="btn-white" title="System: Reset"></button>
+        <div class="fader-group">
+            <input type="range" id="fader-reverb" class="fader" min="0" max="1" step="0.01" value="0">
+            <label class="fader-label">REVERB</label>
+        </div>
     </div>
+
+    <!-- Фронтенд: Физический пульт (6 клавиш с гравировкой) -->
+    <div class="synth-board">
+        <button class="synth-key key-gold" id="btn-gold" title="Element: Gold">金</button>
+        <button class="synth-key key-earth" id="btn-earth" title="Element: Earth">土</button>
+        <button class="synth-key key-hinoki" id="btn-hinoki" title="Element: Hinoki Wood">檜</button>
+        
+        <button class="synth-key key-water" id="btn-water" title="Element: Water">水</button>
+        <button class="synth-key key-ice" id="btn-ice" title="Element: Ice">氷</button>
+        <button class="synth-key key-white" id="btn-white" title="System: Reset">白</button>
+    </div>
+
 
     <!-- Подключение JS (в самом конце body) -->
     <script src="app.js"></script>
