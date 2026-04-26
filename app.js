@@ -1,11 +1,7 @@
-// --- ИНИЦИАЛИЗАЦИЯ АУДИО (Браузерный движок) ---
+// --- ИНИЦИАЛИЗАЦИЯ АУДИО И ГЛОБАЛЬНЫХ ЭФФЕКТОВ ---
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
+let audioCtx, masterGain, masterFilter, masterReverb, pannerNode, lfoNode, lfoGain;
 
-// Глобальные узлы (Микшер)
-let masterGain, masterFilter, masterReverb;
-
-// Функция создания эха (Импульс)
 function createReverbImpulse(ctx, duration, decay) {
     const rate = ctx.sampleRate;
     const length = rate * duration;
@@ -20,27 +16,40 @@ function createReverbImpulse(ctx, duration, decay) {
     return impulse;
 }
 
-// Запуск аудио-движка (Роутинг)
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new AudioContext();
         
-        // Создаем мастер-узлы
+        // 1. Создаем мастер-узлы (Эффекты)
         masterGain = audioCtx.createGain(); 
         masterFilter = audioCtx.createBiquadFilter(); 
         masterReverb = audioCtx.createConvolver(); 
         const reverbGain = audioCtx.createGain(); 
+        pannerNode = audioCtx.createStereoPanner(); // Панорама
 
-        // Инициализация ползунков
+        // Создаем LFO (Вибрация)
+        lfoNode = audioCtx.createOscillator();
+        lfoGain = audioCtx.createGain();
+        lfoNode.type = 'sine';
+        lfoNode.connect(lfoGain);
+        lfoGain.connect(masterFilter.frequency); // LFO крутит частоту фильтра
+        lfoNode.start();
+
+        // 2. Инициализация ползунков UI
         masterFilter.type = 'lowpass';
         masterFilter.frequency.value = document.getElementById('fader-filter').value;
         masterFilter.Q.value = document.getElementById('fader-q').value;
-
+        pannerNode.pan.value = document.getElementById('fader-pan').value;
+        lfoNode.frequency.value = document.getElementById('fader-lfo-spd').value;
+        lfoGain.gain.value = document.getElementById('fader-lfo-dep').value;
+        
         masterReverb.buffer = createReverbImpulse(audioCtx, 3.0, 2.0); 
         reverbGain.gain.value = document.getElementById('fader-reverb').value;
         masterGain.gain.value = document.getElementById('fader-volume').value;
 
-        // Строим цепь звука
+        // 3. Строим цепь звука: Panner -> Filter -> (Gain + Reverb) -> Destination
+        pannerNode.connect(masterFilter);
+        
         masterFilter.connect(masterGain);
         masterGain.connect(audioCtx.destination); 
 
@@ -48,16 +57,19 @@ function initAudio() {
         masterReverb.connect(reverbGain);
         reverbGain.connect(audioCtx.destination); 
 
-        // Слушатели ползунков UI
+        // 4. Слушатели ползунков UI (Live Update)
         document.getElementById('fader-volume').addEventListener('input', (e) => masterGain.gain.value = e.target.value);
+        document.getElementById('fader-pan').addEventListener('input', (e) => pannerNode.pan.value = e.target.value);
         document.getElementById('fader-filter').addEventListener('input', (e) => masterFilter.frequency.value = e.target.value);
         document.getElementById('fader-q').addEventListener('input', (e) => masterFilter.Q.value = e.target.value);
         document.getElementById('fader-reverb').addEventListener('input', (e) => reverbGain.gain.value = e.target.value);
+        document.getElementById('fader-lfo-spd').addEventListener('input', (e) => lfoNode.frequency.value = e.target.value);
+        document.getElementById('fader-lfo-dep').addEventListener('input', (e) => lfoGain.gain.value = e.target.value);
     }
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-// --- ФУНКЦИЯ ВОСПРОИЗВЕДЕНИЯ (С балансом громкости) ---
+// --- ВОСПРОИЗВЕДЕНИЕ ---
 function playTone(frequency, type, duration, volume) {
     initAudio();
     const oscillator = audioCtx.createOscillator();
@@ -66,58 +78,37 @@ function playTone(frequency, type, duration, volume) {
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
 
-    // Применяем индивидуальную громкость ноты (vol) из базы данных
+    // Индивидуальная громкость ноты
     oscGain.gain.setValueAtTime(volume, audioCtx.currentTime);
     oscGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
 
+    // Подключаем к Панорама-узлу (вход в мастер-цепь)
     oscillator.connect(oscGain);
-    oscGain.connect(masterFilter);
+    oscGain.connect(pannerNode);
 
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + duration);
 }
 
-// --- БАЗА ДАННЫХ СТИХИЙ (Полные логи + Иконки + Баланс) ---
+// --- БАЗА ДАННЫХ СТИХИЙ (11 Клавиш + ЛОГИ) ---
 const db = {
-    gold: {
-        kanji: "金", color: "#ffda75", shadow: "0 0 20px rgba(255, 218, 117, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)",
-        phrase: "黄金 (Kogane) — Золото, Металл",
-        code: "\n> init_module('金');\n> freq: 440.00 Hz  [ ⌁ sawtooth ]\n> density: maximum\n> state: [Alloy Stable]",
-        freq: 440, wave: 'sawtooth', duration: 1.5, vol: 0.3
-    },
-    earth: {
-        kanji: "土", color: "#8b6b4a", shadow: "0 0 20px rgba(139, 107, 74, 0.4), 0 0 40px rgba(139, 107, 74, 0.2)",
-        phrase: "土 (Tsuchi) — Земля, Камень",
-        code: "\n> init_module('土');\n> freq: 65.00 Hz   [ ⎍ square ]\n> gravity: heavy\n> state: [Grounding Active]",
-        freq: 65, wave: 'square', duration: 2.0, vol: 0.4
-    },
-    hinoki: {
-        kanji: "檜", color: "#e68a49", shadow: "0 0 20px rgba(230, 138, 73, 0.5), 0 0 40px rgba(180, 90, 30, 0.3)",
-        phrase: "檜 (Hinoki) — Японский кипарис",
-        code: "\n> init_module('檜');\n> freq: 329.63 Hz  [ ∿ sine ]\n> atmosphere: relaxing\n> state: [Organic Flow]",
-        freq: 329.63, wave: 'sine', duration: 2.5, vol: 1.0
-    },
-    water: {
-        kanji: "水", color: "#4dabf7", shadow: "0 0 20px rgba(77, 171, 247, 0.5), 0 0 40px rgba(77, 171, 247, 0.2)",
-        phrase: "水 (Mizu) — Вода, Течение",
-        code: "\n> init_module('水');\n> freq: 523.25 Hz  [ ∿ sine ]\n> flow_rate: optimal\n> state: [Fluid Dynamics]",
-        freq: 523.25, wave: 'sine', duration: 1.0, vol: 1.0
-    },
-    ice: {
-        kanji: "氷", color: "#00ffff", shadow: "0 0 20px rgba(0, 255, 255, 0.6), 0 0 40px rgba(0, 255, 255, 0.3)",
-        phrase: "氷 (Kōri) — Лед, Кристалл",
-        code: "\n> init_module('氷');\n> freq: 1046.50 Hz [ ⋀ triangle ]\n> temp: absolute zero\n> state: [Crystal Structure]",
-        freq: 1046.50, wave: 'triangle', duration: 0.5, vol: 0.8
-    },
-    white: {
-        kanji: "白", color: "#ffffff", shadow: "0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(226, 232, 240, 0.3)",
-        phrase: "白紙 (Hakushi) — Чистый лист",
-        code: "\n> sys_reset('白');\n> freq: 880.00 Hz  [ ∿ sine ]\n> cache: flushed\n> status: [Clean Slate]",
-        freq: 880, wave: 'sine', duration: 0.8, vol: 1.0
-    }
+    'btn-gold': { kanji: "金", color: "#ffda75", shadow: "0 0 20px rgba(255, 218, 117, 0.4)", phrase: "黄金 (Kogane) — Золото", code: "\n> init('金');\n> freq: 440 Hz [ ⌁ saw ]\n> alloy: stable", freq: 440, wave: 'sawtooth', duration: 1.5, vol: 0.3 },
+    'btn-silver': { kanji: "銀", color: "#e2e8f0", shadow: "0 0 20px rgba(226, 232, 240, 0.4)", phrase: "銀 (Gin) — Серебро", code: "\n> init('銀');\n> freq: 587 Hz [ ⌁ saw ]\n> conductivity: high", freq: 587.33, wave: 'sawtooth', duration: 1.2, vol: 0.3 },
+    'btn-bronze': { kanji: "銅", color: "#ff8c69", shadow: "0 0 20px rgba(255, 140, 105, 0.4)", phrase: "銅 (Dou) — Бронза", code: "\n> init('銅');\n> freq: 329 Hz [ ⌁ saw ]\n> resonance: deep", freq: 329.63, wave: 'sawtooth', duration: 1.8, vol: 0.4 },
+    
+    'btn-water': { kanji: "水", color: "#4dabf7", shadow: "0 0 20px rgba(77, 171, 247, 0.5)", phrase: "水 (Mizu) — Вода", code: "\n> init('水');\n> freq: 523 Hz [ ∿ sine ]\n> flow: optimal", freq: 523.25, wave: 'sine', duration: 1.0, vol: 1.0 },
+    'btn-hotwater': { kanji: "湯", color: "#ff6b6b", shadow: "0 0 20px rgba(255, 107, 107, 0.5)", phrase: "湯 (Yu) — Онсэн", code: "\n> init('湯');\n> freq: 261 Hz [ ∿ sine ]\n> temp: 42C", freq: 261.63, wave: 'sine', duration: 2.0, vol: 1.0 },
+    'btn-steam': { kanji: "蒸", color: "#a5d8ff", shadow: "0 0 20px rgba(165, 216, 255, 0.5)", phrase: "蒸気 (Jouki) — Пар", code: "\n> init('蒸');\n> freq: 880 Hz [ ∿ sine ]\n> state: vapor", freq: 880, wave: 'sine', duration: 3.0, vol: 0.6 },
+    'btn-ice': { kanji: "氷", color: "#00ffff", shadow: "0 0 20px rgba(0, 255, 255, 0.6)", phrase: "氷 (Kōri) — Лед", code: "\n> init('氷');\n> freq: 1046 Hz [ ⋀ tri ]\n> struct: crystal", freq: 1046.50, wave: 'triangle', duration: 0.5, vol: 0.8 },
+    
+    'btn-hinoki': { kanji: "檜", color: "#e68a49", shadow: "0 0 20px rgba(230, 138, 73, 0.5)", phrase: "檜 (Hinoki) — Кипарис", code: "\n> init('檜');\n> freq: 164 Hz [ ⎍ sqr ]\n> aroma: forest", freq: 164.81, wave: 'square', duration: 2.5, vol: 0.3 },
+    'btn-sugi': { kanji: "杉", color: "#c07a47", shadow: "0 0 20px rgba(192, 122, 71, 0.5)", phrase: "杉 (Sugi) — Кедр", code: "\n> init('杉');\n> freq: 130 Hz [ ⎍ sqr ]\n> age: ancient", freq: 130.81, wave: 'square', duration: 2.0, vol: 0.3 },
+    'btn-take': { kanji: "竹", color: "#73d073", shadow: "0 0 20px rgba(115, 208, 115, 0.5)", phrase: "竹 (Take) — Бамбук", code: "\n> init('竹');\n> freq: 659 Hz [ ⋀ tri ]\n> core: hollow", freq: 659.25, wave: 'triangle', duration: 0.8, vol: 0.6 },
+
+    'btn-white': { kanji: "白", color: "#ffffff", shadow: "0 0 20px rgba(255, 255, 255, 0.6)", phrase: "白紙 (Hakushi) — Чистый лист", code: "\n> sys_reset('白');\n> status: [Clean Slate]", freq: 880, wave: 'sine', duration: 0.8, vol: 1.0 }
 };
 
-// --- КОНТРОЛЛЕР UI (Физика и Анимация) ---
+// --- КОНТРОЛЛЕР UI ---
 const hologram = document.getElementById('hologram');
 const kanjiDisplay = document.getElementById('kanji-display');
 const typewriterDisplay = document.getElementById('typewriter');
@@ -126,68 +117,60 @@ let typeInterval = null;
 let activeKey = null;
 let keyReleaseTimer = null; 
 
-function playElement(keyId, elementKey) {
+function playElement(keyId) {
     const btn = document.getElementById(keyId);
-    const data = db[elementKey];
+    const data = db[keyId]; 
 
     if (keyReleaseTimer) clearTimeout(keyReleaseTimer);
-
-    document.querySelectorAll('.synth-key').forEach(b => {
-        if (b.id !== keyId) b.classList.remove('pressed');
-    });
+    document.querySelectorAll('.synth-key').forEach(b => { if (b.id !== keyId) b.classList.remove('pressed'); });
 
     if (activeKey === keyId) {
-        btn.classList.remove('pressed');
+        btn.classList.remove('pressed'); 
         hologram.classList.remove('active');
-        clearInterval(typeInterval);
+        clearInterval(typeInterval); 
         setTimeout(() => { typewriterDisplay.textContent = ''; }, 800);
-        activeKey = null;
+        activeKey = null; 
         return;
     }
 
-    btn.classList.add('pressed');
+    btn.classList.add('pressed'); 
     activeKey = keyId;
 
-    keyReleaseTimer = setTimeout(() => {
-        btn.classList.remove('pressed');
+    keyReleaseTimer = setTimeout(() => { 
+        btn.classList.remove('pressed'); 
         activeKey = null; 
     }, 300); 
 
-    // ПЕРЕДАЕМ 4 ПАРАМЕТРА В ЗВУК (Частота, Тип, Длительность, ГРОМКОСТЬ)
     playTone(data.freq, data.wave, data.duration, data.vol);
 
-    kanjiDisplay.textContent = data.kanji;
-    kanjiDisplay.style.color = data.color;
+    kanjiDisplay.textContent = data.kanji; 
+    kanjiDisplay.style.color = data.color; 
     kanjiDisplay.style.textShadow = data.shadow;
     
-    typewriterDisplay.style.color = data.color;
-    typewriterDisplay.style.textShadow = data.shadow;
+    typewriterDisplay.style.color = data.color; 
+    typewriterDisplay.style.textShadow = data.shadow; 
     typewriterDisplay.style.borderLeftColor = data.color;
-
+    
     hologram.classList.add('active');
     
-    clearInterval(typeInterval);
+    clearInterval(typeInterval); 
     typewriterDisplay.textContent = '';
-    let i = 0;
+    let i = 0; 
     const fullText = data.phrase + data.code;
     
     typeInterval = setInterval(() => {
-        if (i < fullText.length) {
-            typewriterDisplay.textContent += fullText.charAt(i);
-            i++;
-        } else {
-            clearInterval(typeInterval);
+        if (i < fullText.length) { 
+            typewriterDisplay.textContent += fullText.charAt(i); 
+            i++; 
+        } else { 
+            clearInterval(typeInterval); 
         }
     }, 40);
 }
 
-// ПРИВЯЗКА СОБЫТИЙ
-document.getElementById('btn-gold').addEventListener('mousedown', () => playElement('btn-gold', 'gold'));
-document.getElementById('btn-earth').addEventListener('mousedown', () => playElement('btn-earth', 'earth'));
-document.getElementById('btn-hinoki').addEventListener('mousedown', () => playElement('btn-hinoki', 'hinoki'));
-document.getElementById('btn-water').addEventListener('mousedown', () => playElement('btn-water', 'water'));
-document.getElementById('btn-ice').addEventListener('mousedown', () => playElement('btn-ice', 'ice'));
-document.getElementById('btn-white').addEventListener('mousedown', () => playElement('btn-white', 'white'));
+// Привязка кликов динамически ко всем кнопкам
+document.querySelectorAll('.synth-key').forEach(btn => {
+    btn.addEventListener('mousedown', () => playElement(btn.id));
+});
 
-// Активация аудио контекста (Анти-блокировка браузера)
 document.body.addEventListener('click', initAudio, { once: true });
