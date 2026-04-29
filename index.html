@@ -2,90 +2,119 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Cyberjazz Synth | Master Release v3.0</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&family=Noto+Sans+JP:wght@300&display=swap" rel="stylesheet">
+    <title>Cyberjazz Synth | Master Release v4.0</title>
+    <!-- Шрифты для хакерского кода и японских иероглифов -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- ГОЛОГРАММА -->
+    <!-- ФРОНТЕНД: ГОЛОГРАММА (Воздушный дисплей) -->
     <div class="hologram-stage" id="hologram">
         <div class="kanji" id="kanji-display"></div>
         <div class="console-text" id="typewriter"></div>
     </div>
 
-    <!-- МИКШЕРНАЯ ПАНЕЛЬ (7 Ползунков) -->
+    <!-- МИКШЕРНАЯ ПАНЕЛЬ (Управление эффектами и DSP) -->
     <div class="mixer-board">
-        <!-- База -->
-        <div class="fader-group">
-            <input type="range" id="fader-volume" class="fader" min="0" max="1" step="0.01" value="0.8">
-            <label class="fader-label">VOL</label>
-        </div>
-        <div class="fader-group">
-            <input type="range" id="fader-pan" class="fader" min="-1" max="1" step="0.1" value="0">
-            <label class="fader-label">PAN</label>
-        </div>
         
-        <!-- Фильтры -->
-        <div class="fader-group">
-            <input type="range" id="fader-filter" class="fader" min="100" max="5000" step="10" value="5000">
-            <label class="fader-label">FILTER</label>
-        </div>
-        <div class="fader-group">
-            <input type="range" id="fader-q" class="fader" min="0" max="30" step="0.1" value="0">
-            <label class="fader-label">Q-FACT</label>
+        <!-- Секция 1: Выходной сигнал (MAIN) -->
+        <div class="mixer-section">
+            <div class="section-title">MAIN OUT</div>
+            <div class="faders-container">
+                <div class="fader-group">
+                    <input type="range" id="fader-volume" class="fader" min="0" max="1" step="0.01" value="0.8">
+                    <label class="fader-label">VOL</label>
+                </div>
+                <div class="fader-group">
+                    <input type="range" id="fader-pan" class="fader" min="-1" max="1" step="0.1" value="0">
+                    <label class="fader-label">PAN</label>
+                </div>
+            </div>
         </div>
 
-        <!-- Пространство и Движение (Cyberjazz) -->
-        <div class="fader-group">
-            <input type="range" id="fader-reverb" class="fader" min="0" max="1" step="0.01" value="0">
-            <label class="fader-label">REVERB</label>
+        <!-- Секция 2: Фильтр (FILTER) -->
+        <div class="mixer-section">
+            <div class="section-title">FILTER</div>
+            <div class="faders-container">
+                <div class="fader-group">
+                    <input type="range" id="fader-filter" class="fader" min="100" max="5000" step="10" value="5000">
+                    <label class="fader-label">CUTOFF</label>
+                </div>
+                <div class="fader-group">
+                    <input type="range" id="fader-q" class="fader" min="0" max="30" step="0.1" value="0">
+                    <label class="fader-label">RESO</label>
+                </div>
+            </div>
         </div>
-        <div class="fader-group">
-            <input type="range" id="fader-lfo-spd" class="fader" min="0" max="20" step="0.1" value="0">
-            <label class="fader-label">LFO SPD</label>
+
+        <!-- Секция 3: Модуляция и Эхо (FX & MOD) -->
+        <div class="mixer-section">
+            <div class="section-title">FX & MOD</div>
+            <div class="faders-container">
+                <div class="fader-group">
+                    <input type="range" id="fader-reverb" class="fader" min="0" max="1" step="0.01" value="0">
+                    <label class="fader-label">REVERB</label>
+                </div>
+                <div class="fader-group">
+                    <input type="range" id="fader-lfo-spd" class="fader" min="0" max="20" step="0.1" value="0">
+                    <label class="fader-label">LFO SPD</label>
+                </div>
+                <div class="fader-group">
+                    <input type="range" id="fader-lfo-dep" class="fader" min="0" max="2000" step="10" value="0">
+                    <label class="fader-label">LFO DEP</label>
+                </div>
+            </div>
         </div>
-        <div class="fader-group">
-            <input type="range" id="fader-lfo-dep" class="fader" min="0" max="2000" step="10" value="0">
-            <label class="fader-label">LFO DEP</label>
-        </div>
+
     </div>
 
-    <!-- КЛАВИАТУРА (11 Клавиш) -->
+    <!-- СИСТЕМНАЯ ПАМЯТЬ (Японские кнопки Save/Load) -->
+    <div class="memory-board">
+        <button class="memory-btn" id="btn-save">セーブ</button> <!-- Seebu / Save -->
+        <button class="memory-btn" id="btn-load">ロード</button> <!-- Roodo / Load -->
+    </div>
+
+    <!-- КЛАВИАТУРА (11 Клавиш с гравировкой и модульной сеткой) -->
     <div class="synth-board">
-        <!-- БЛОК 1: Металлы -->
-        <div class="module-group" title="Noble Metals">
+        
+        <!-- БЛОК 1: Благородные Металлы -->
+        <div class="module-group" title="Module: Noble Metals">
             <button class="synth-key key-gold" id="btn-gold">金</button>
             <button class="synth-key key-silver" id="btn-silver">銀</button>
             <button class="synth-key key-bronze" id="btn-bronze">銅</button>
         </div>
 
+        <!-- Разделитель (Металлический профиль с винтами) -->
         <div class="module-divider"><div class="screw top"></div><div class="screw bottom"></div></div>
 
-        <!-- БЛОК 2: Вода -->
-        <div class="module-group" title="H2O States">
+        <!-- БЛОК 2: Агрегатные состояния Воды -->
+        <div class="module-group" title="Module: H2O States">
             <button class="synth-key key-water" id="btn-water">水</button>
             <button class="synth-key key-hotwater" id="btn-hotwater">湯</button>
             <button class="synth-key key-steam" id="btn-steam">蒸</button>
             <button class="synth-key key-ice" id="btn-ice">氷</button>
         </div>
 
+        <!-- Разделитель -->
         <div class="module-divider"><div class="screw top"></div><div class="screw bottom"></div></div>
 
-        <!-- БЛОК 3: Дерево -->
-        <div class="module-group" title="Sacred Woods">
+        <!-- БЛОК 3: Благородная Древесина -->
+        <div class="module-group" title="Module: Sacred Woods">
             <button class="synth-key key-hinoki" id="btn-hinoki">檜</button>
             <button class="synth-key key-sugi" id="btn-sugi">杉</button>
             <button class="synth-key key-take" id="btn-take">竹</button>
         </div>
 
-        <!-- СИСТЕМНАЯ -->
+        <!-- СИСТЕМНАЯ КНОПКА (Сброс / Hakushi) -->
         <div class="module-divider slim"></div>
         <div class="module-group">
             <button class="synth-key key-white" id="btn-white">白</button>
         </div>
+        
     </div>
 
+    <!-- Подключаем логику и движок -->
     <script src="app.js"></script>
 </body>
 </html>

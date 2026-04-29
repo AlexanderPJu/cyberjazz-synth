@@ -1,4 +1,4 @@
-/* --- БАЗА И КАРКАС --- */
+/* --- БАЗА (Среда обитания и Каркас) --- */
 body {
     margin: 0; height: 100vh;
     background-color: #121317;
@@ -7,7 +7,7 @@ body {
     padding: 3vh 0; box-sizing: border-box; overflow: hidden; font-family: 'Fira Code', monospace;
 }
 
-/* --- ГОЛОГРАММА --- */
+/* --- ГОЛОГРАММА (Парящий дисплей) --- */
 .hologram-stage {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     flex-grow: 1; text-align: center; pointer-events: none; opacity: 0; transform: translateY(20px);
@@ -25,27 +25,52 @@ body {
     border-left: 2px solid transparent; transition: color 0.5s, text-shadow 0.5s, border-color 0.5s;
 }
 
-/* --- ПАНЕЛЬ МИКШЕРА --- */
+/* --- ПАНЕЛЬ МИКШЕРА (Сгруппированная) --- */
 .mixer-board {
-    display: flex; gap: 30px; padding: 15px 40px;
+    display: flex; gap: 15px; padding: 20px;
     background: linear-gradient(180deg, #1a1c23, #15171c); border-radius: 6px 6px 0 0;
     border: 1px solid #2a2d35; border-bottom: none; box-shadow: inset 0 2px 5px rgba(255,255,255,0.05); margin-bottom: -1px;
 }
 
+.mixer-section {
+    display: flex; flex-direction: column; padding: 10px 15px;
+    background: #111216; border: 1px solid #22252b; border-radius: 4px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.section-title {
+    color: #4a505e; font-size: 0.65rem; letter-spacing: 2px; text-align: center;
+    margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #1c1e24; padding-bottom: 5px;
+}
+
+.faders-container { display: flex; gap: 25px; justify-content: center; }
 .fader-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
+/* Вертикальные ползунки */
 .fader {
-    -webkit-appearance: none; width: 120px; height: 6px; background: #0a0b0e; border-radius: 3px;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); outline: none; transform: rotate(270deg); margin: 55px 0;
+    -webkit-appearance: none; width: 100px; height: 6px; background: #060709; border-radius: 3px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05); outline: none; 
+    transform: rotate(270deg); margin: 50px 0;
 }
-
 .fader::-webkit-slider-thumb {
     -webkit-appearance: none; width: 25px; height: 12px; background: linear-gradient(90deg, #3a3f4a, #2a2d35);
-    border: 1px solid #000; border-radius: 2px; cursor: grab; box-shadow: 0 5px 10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+    border: 1px solid #000; border-radius: 2px; cursor: grab; box-shadow: 0 5px 10px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.2);
 }
 .fader::-webkit-slider-thumb:active { cursor: grabbing; }
+.fader-label { font-size: 0.6rem; color: #5c6370; letter-spacing: 1px; font-weight: bold; }
 
-.fader-label { font-size: 0.65rem; color: #6c757d; letter-spacing: 1px; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.8); }
+/* --- ПАНЕЛЬ ПАМЯТИ (Save/Load) --- */
+.memory-board { display: flex; gap: 15px; margin: 15px 0; }
+.memory-btn {
+    background: linear-gradient(180deg, #2a2d35, #1c1e24); border: 1px solid #0a0b0e; border-radius: 3px;
+    color: #a9b1d6; font-family: 'Noto Sans JP', sans-serif; font-size: 0.8rem; padding: 6px 18px;
+    cursor: pointer; box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.5); transition: all 0.1s ease-in-out;
+}
+.memory-btn:active { 
+    transform: translateY(2px); 
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.8); 
+    /* Неоновая подсветка удалена. Кнопка просто механически нажимается. */
+}
 
 /* --- КОРПУС И КЛАВИАТУРА --- */
 .synth-board {
@@ -57,6 +82,7 @@ body {
 
 .module-group { display: flex; gap: 6px; align-items: flex-end; }
 
+/* Металлические разделители */
 .module-divider {
     width: 14px; margin: 0 15px; background: linear-gradient(90deg, #1c1e24, #2a2d35, #1c1e24);
     border-radius: 2px; position: relative; display: flex; flex-direction: column; justify-content: space-between;
@@ -78,28 +104,33 @@ body {
     transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease-out, filter 0.5s ease-out;
 }
 
+/* Мгновенное нажатие (Атака) */
 .synth-key:active, .synth-key.pressed {
     transform: perspective(500px) rotateX(5deg) translateY(4px);
     box-shadow: -1px 0 2px rgba(0,0,0,0.9), 1px 0 2px rgba(0,0,0,0.9), inset 0 1px 1px rgba(0,0,0,0.5), inset 0 -5px 10px rgba(0,0,0,0.7);
     transition: transform 0.05s ease-in, box-shadow 0.05s ease-in, filter 0.05s ease-in;
 }
 
+/* Светодиод внизу клавиши */
 .synth-key::after {
     content: ''; position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; border-radius: 2px;
     background: rgba(255,255,255,0.1); transition: all 0.3s ease;
 }
 
-/* ЦВЕТА КЛАВИШ */
+/* --- ЦВЕТА КЛАВИШ И НЕОНА (Материалы) --- */
 .key-gold { background: #b89947; } .key-gold.pressed::after { background: #ffda75; box-shadow: 0 0 15px #ffda75; }
 .key-silver { background: #8e959e; } .key-silver.pressed::after { background: #e2e8f0; box-shadow: 0 0 15px #e2e8f0; }
 .key-bronze { background: #a66144; } .key-bronze.pressed::after { background: #ff8c69; box-shadow: 0 0 15px #ff8c69; }
+
 .key-water { background: #2b4c7e; } .key-water.pressed::after { background: #4dabf7; box-shadow: 0 0 15px #4dabf7; }
 .key-hotwater { background: #5c3546; } .key-hotwater.pressed::after { background: #ff6b6b; box-shadow: 0 0 15px #ff6b6b; }
 .key-steam { background: #5c6c7a; } .key-steam.pressed::after { background: #a5d8ff; box-shadow: 0 0 15px #a5d8ff; }
 .key-ice { background: #689cb3; } .key-ice.pressed::after { background: #00ffff; box-shadow: 0 0 15px #00ffff; }
+
 .key-hinoki { background: #5c3a21; } .key-hinoki.pressed::after { background: #e68a49; box-shadow: 0 0 15px #e68a49; }
 .key-sugi { background: #3d2b1f; } .key-sugi.pressed::after { background: #c07a47; box-shadow: 0 0 15px #c07a47; }
 .key-take { background: #3a5c3a; } .key-take.pressed::after { background: #73d073; box-shadow: 0 0 15px #73d073; }
+
 .key-white { background: #d0d5dc; color: rgba(0,0,0,0.3); text-shadow: 1px 1px 1px rgba(255,255,255,0.7); }
 .key-white.pressed::after { background: #ffffff; box-shadow: 0 0 15px #ffffff; }
 
